@@ -11,7 +11,7 @@ public class Order {
     private final PaymentType paymentType;
     private final OrderPriority orderPriority;
     private Double discount = 0.0;
-    private final Double fee;
+    private Double fee;
 
     public Order(
             String id,
@@ -28,6 +28,11 @@ public class Order {
         this.paymentType = paymentType;
         this.orderPriority = orderPriority;
 
+        this.calculateDiscount();
+        this.calculateFee();
+    }
+
+    public void calculateDiscount() {
         if (amount > 1000) {
             this.discount = amount * 0.1;
         } else if (amount > 500) {
@@ -37,7 +42,9 @@ public class Order {
         if (orderPriority.equals(OrderPriority.VIP)) {
             this.discount += amount * 0.02;
         }
+    }
 
+    public void calculateFee() {
         switch (paymentType) {
             case CARD:
                 this.fee = amount * 0.03;
