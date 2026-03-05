@@ -1,91 +1,53 @@
 package org.example.treinamento.Refatoracao.Ex1_Code_Smells_Basicos;
 
+import org.example.treinamento.Refatoracao.Ex1_Code_Smells_Basicos.resolucao.model.Order;
+import org.example.treinamento.Refatoracao.Ex1_Code_Smells_Basicos.resolucao.model.OrderPriority;
+import org.example.treinamento.Refatoracao.Ex1_Code_Smells_Basicos.resolucao.model.OrderStatus;
+
+import java.util.Arrays;
 import java.util.List;
 
 public class OrderService {
+    List<OrderStatus> PERMITED_STATUS = Arrays.asList(OrderStatus.NEW, OrderStatus.PENDING, OrderStatus.RETRY);
 
-    public void processOrders(List<String[]> rawOrders) {
+    public void processOrders(List<Order> rawOrders) {
         double grandTotal = 0.0;
         int processed = 0;
         int failed = 0;
 
         System.out.println("=== INICIO PROCESSAMENTO DE PEDIDOS ===");
 
-        for (String[] row : rawOrders) {
-            if (row == null || row.length < 6) {
-                System.out.println("Pedido inválido: linha incompleta");
-                failed++;
-                continue;
-            }
-
-            String orderId = row[0];
-            String customer = row[1];
-            String amountText = row[2];
-            String status = row[3];
-            String paymentType = row[4];
-            String priority = row[5];
-
-            if (orderId == null || orderId.isBlank()) {
+        for (Order order : rawOrders) {
+            if (order.getId() == null || order.getId().isBlank()) {
                 System.out.println("Pedido sem ID foi descartado");
                 failed++;
                 continue;
             }
 
-            if (!"NEW".equals(status) && !"PENDING".equals(status) && !"RETRY".equals(status)) {
-                System.out.println("Pedido " + orderId + " ignorado por status: " + status);
+            if (!PERMITED_STATUS.contains(order.getStatus())) {
+                System.out.println("Pedido " + order.getId() + " ignorado por status: " + order.getStatus());
                 continue;
             }
 
-            double amount;
-            try {
-                amount = Double.parseDouble(amountText);
-            } catch (NumberFormatException ex) {
-                System.out.println("Pedido " + orderId + " com valor inválido: " + amountText);
+            if (order.getAmount() <= 0) {
+                System.out.println("Pedido " + order.getId() + " com valor não positivo");
                 failed++;
                 continue;
             }
 
-            if (amount <= 0) {
-                System.out.println("Pedido " + orderId + " com valor não positivo");
-                failed++;
-                continue;
-            }
-
-            double discount = 0.0;
-            if (amount > 1000) {
-                discount = amount * 0.1;
-            } else if (amount > 500) {
-                discount = amount * 0.05;
-            }
-
-            if ("VIP".equalsIgnoreCase(priority)) {
-                discount += amount * 0.02;
-            }
-
-            double fee = 0.0;
-            if ("CARD".equalsIgnoreCase(paymentType)) {
-                fee = amount * 0.03;
-            } else if ("PIX".equalsIgnoreCase(paymentType)) {
-                fee = amount * 0.01;
-            } else if ("BOLETO".equalsIgnoreCase(paymentType)) {
-                fee = 2.0;
-            } else {
-                fee = 5.0;
-            }
-
-            double finalAmount = amount - discount + fee;
+            double finalAmount = order.getAmount() - order.getDiscount() + order.getFee();
             grandTotal += finalAmount;
             processed++;
 
-            String persistedLine = orderId + ";" + customer + ";" + finalAmount + ";" + paymentType;
+            String persistedLine = order.getId() + ";" + order.getCustomer() + ";" + finalAmount + ";" + order.getPaymentType();
             System.out.println("Persistindo: " + persistedLine);
 
-            if ("VIP".equalsIgnoreCase(priority)) {
-                System.out.println("Notificação VIP -> cliente=" + customer + ", pedido=" + orderId + ", total=" + finalAmount);
-                System.out.println("Resumo: Pedido " + orderId + " aprovado para cliente VIP " + customer + " com total " + finalAmount);
+            if (order.getOrderPriority().equals(OrderPriority.VIP)) {
+                System.out.println("Notificação VIP -> cliente=" + order.getCustomer() + ", pedido=" + order.getId() + ", total=" + finalAmount);
+                System.out.println("Resumo: Pedido " + order.getId() + " aprovado para cliente VIP " + order.getCustomer() + " com total " + finalAmount);
             } else {
-                System.out.println("Notificação padrão -> cliente=" + customer + ", pedido=" + orderId + ", total=" + finalAmount);
-                System.out.println("Resumo: Pedido " + orderId + " aprovado para cliente " + customer + " com total " + finalAmount);
+                System.out.println("Notificação padrão -> cliente=" + order.getCustomer() + ", pedido=" + order.getId() + ", total=" + finalAmount);
+                System.out.println("Resumo: Pedido " + order.getId() + " aprovado para cliente " + order.getCustomer() + " com total " + finalAmount);
             }
         }
 
