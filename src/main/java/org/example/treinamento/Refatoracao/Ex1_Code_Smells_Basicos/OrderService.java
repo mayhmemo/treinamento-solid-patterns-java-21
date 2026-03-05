@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class OrderService {
-    List<OrderStatus> PERMITED_STATUS = Arrays.asList(OrderStatus.NEW, OrderStatus.PENDING, OrderStatus.RETRY);
+    private static final List<OrderStatus> PERMITED_STATUS = Arrays.asList(OrderStatus.NEW, OrderStatus.PENDING, OrderStatus.RETRY);
 
     public void processOrders(List<Order> rawOrders) {
         double grandTotal = 0.0;
